@@ -5,7 +5,7 @@ import time
 
 import mss
 
-DEFAULT_HOST = '127.0.0.1'
+DEFAULT_HOST = '0.0.0.0'
 DEFAULT_SERVER_PORT = 65432
 
 START_KEY = 'o'
