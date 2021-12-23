@@ -19,6 +19,11 @@ print('connected')
 
 while True:
     msg = socket_connection.recv(1024)
+    if len(msg) == 0:
+        # TODO could we receive a message with length 0 that the server sends to keep the connection alive?
+        print('connection closed')
+        break
+
     print(type(msg), msg)
     messages, remaining_bytes = deserialize_messages(msg)
     print(messages, len(remaining_bytes), remaining_bytes)

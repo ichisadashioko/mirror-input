@@ -155,7 +155,7 @@ class MirrorInputClient:
         self.daemon_thread_handle = None
 
     def send_messages(self):
-        print(time.time(), len(self.message_queue), self.alive)
+        print(time.time(), len(self.message_queue), self.alive, end='\r')
         if len(self.message_queue) == 0:
             time.sleep(0.01)
             return
