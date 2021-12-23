@@ -64,7 +64,7 @@ if args.host is None:
         try:
             socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('connecting to', hostname, args.port)
-            socket_connection.connect((args.host, args.port))
+            socket_connection.connect((hostname, args.port))
         except:
             socket_connection = None
             continue
