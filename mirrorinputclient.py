@@ -63,11 +63,14 @@ if args.host is None:
         hostname = f'192.168.0.{i}'
         try:
             socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            socket_connection.settimeout(0.1)
             print('connecting to', hostname, args.port)
             socket_connection.connect((hostname, args.port))
+            socket_connection.settimeout(None)
         except:
             socket_connection = None
             continue
+        break
 else:
     socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print('connecting to', args.host, args.port)
