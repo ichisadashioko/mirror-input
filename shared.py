@@ -168,20 +168,21 @@ class MirrorInputClient:
             byte_buffer.write(serialize_message(message))
         self.socket.send(byte_buffer.getvalue())
 
-    def daemon_thread(self):
-        while self.alive:
-            try:
-                self.send_messages()
-            except Exception as e:
-                self.alive = False
-                traceback_str = traceback.format_exc()
-                print(e)
-                print(traceback_str)
 
-        # try to clean up the socket
+def handle_client_thread(client: MirrorInputClient):
+    while client.alive:
         try:
-            self.socket.close()
+            client.send_messages()
         except Exception as e:
+            client.alive = False
             traceback_str = traceback.format_exc()
             print(e)
             print(traceback_str)
+
+    # try to clean up the socket
+    try:
+        client.socket.close()
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(e)
+        print(traceback_str)

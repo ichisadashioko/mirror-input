@@ -130,7 +130,7 @@ while (not STOP_FLAG) and (not os.path.exists('stop')):
 
     client = MirrorInputClient(client_socket, client_address)
     client_list.append(client)
-    thread = threading.Thread(target=client.daemon_thread)
+    thread = threading.Thread(target=handle_client_thread, args=(client,))
     client.daemon_thread_handle = thread
     thread.start()
 
@@ -143,7 +143,6 @@ for client in client_list:
     try:
         if client.alive:
             client.alive = False
-            client.daemon_thread_handle.kill()
             client.socket.close()
             # TODO: wait for the thread to finish
     except Exception as e:
