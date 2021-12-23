@@ -25,6 +25,12 @@ RIGHT_MOUSE_UP_CODE = 5
 MOUSE_MOVE_CODE = 6
 SCREEN_INFO_CODE = 7
 
+KEY_EVENT_CODE_LIST = [KEY_PRESS_CODE, KEY_RELEASE_CODE]
+MOUSE_EVENT_CODE_LIST = [
+    LEFT_MOUSE_DOWN_CODE, LEFT_MOUSE_UP_CODE,
+    RIGHT_MOUSE_DOWN_CODE, RIGHT_MOUSE_UP_CODE,
+]
+
 
 def get_screen_info():
     with mss.mss() as sct:
@@ -67,40 +73,77 @@ def serialize_message(message):
     return byte_buffer.getvalue()
 
 
-def deserialize_messages(bs: bytes):
-    byte_buffer = io.BytesIO(bs)
-    messages = []
-    seek_index = 0
-    while True:
-        message_type = byte_buffer.read(1)
-        if message_type == b'':
-            break
-        # TODO
+def deserialize_messages(input_bs: bytes):
+    # loop through each byte in the buffer
+    # if the remaining bytes is not enough to deserialize a message, return the remaining bytes
 
-        message = {'type': byte_buffer.read(1)[0]}
-        if message['type'] == KEY_PRESS_CODE:
-            message['key'] = byte_buffer.read(1)
-        elif message['type'] == KEY_RELEASE_CODE:
-            message['key'] = byte_buffer.read(1)
-        elif message['type'] == LEFT_MOUSE_DOWN_CODE:
-            message['x'] = byte_buffer.read(4)
-            message['y'] = byte_buffer.read(4)
-        elif message['type'] == LEFT_MOUSE_UP_CODE:
-            message['x'] = byte_buffer.read(4)
-            message['y'] = byte_buffer.read(4)
-        elif message['type'] == RIGHT_MOUSE_DOWN_CODE:
-            message['x'] = byte_buffer.read(4)
-            message['y'] = byte_buffer.read(4)
-        elif message['type'] == RIGHT_MOUSE_UP_CODE:
-            message['x'] = byte_buffer.read(4)
-            message['y'] = byte_buffer.read(4)
-        elif message['type'] == MOUSE_MOVE_CODE:
-            message['x'] = byte_buffer.read(4)
-            message['y'] = byte_buffer.read(4)
-        elif message['type'] == SCREEN_INFO_CODE:
-            message['width'] = byte_buffer.read(4)
-            message['height'] = byte_buffer.read(4)
-        messages.append(message)
+    byte_buffer = io.BytesIO(input_bs)
+    messages = []
+    processing_buffer = io.BytesIO()
+
+    while True:
+        if byte_buffer.tell() >= len(input_bs):
+            break
+
+        bs = byte_buffer.read(1)
+        if len(bs) == 0:
+            break
+
+        processing_buffer.write(bs)
+        message_type = int.from_bytes(bs, 'little')
+
+        if message_type == SCREEN_INFO_CODE:
+            bs = byte_buffer.read(4)
+            processing_buffer.write(bs)
+            if len(bs) < 4:
+                break
+            width = int.from_bytes(bs, 'little')
+            bs = byte_buffer.read(4)
+            processing_buffer.write(bs)
+            if len(bs) < 4:
+                break
+            height = int.from_bytes(bs, 'little')
+            messages.append({
+                'type': message_type,
+                'width': width,
+                'height': height,
+            })
+            processing_buffer = io.BytesIO()
+        elif message_type in KEY_EVENT_CODE_LIST:
+            bs = byte_buffer.read(1)
+            processing_buffer.write(bs)
+            if len(bs) < 1:
+                break
+            key = bs.decode('utf-8')
+            messages.append({
+                'type': message_type,
+                'key': key,
+            })
+            processing_buffer = io.BytesIO()
+        elif message_type in MOUSE_EVENT_CODE_LIST:
+            bs = byte_buffer.read(4)
+            processing_buffer.write(bs)
+            if len(bs) < 4:
+                break
+            x = int.from_bytes(bs, 'little')
+            bs = byte_buffer.read(4)
+            processing_buffer.write(bs)
+            if len(bs) < 4:
+                break
+            y = int.from_bytes(bs, 'little')
+            messages.append({
+                'type': message_type,
+                'x': x,
+                'y': y,
+            })
+            processing_buffer = io.BytesIO()
+        else:
+            # TODO: handle error
+            print('unknown message type', message_type)
+            break
+    remaining_bytes = processing_buffer.getvalue()
+    remaining_bytes += byte_buffer.read()
+    return messages, remaining_bytes
 
 
 class MirrorInputClient:

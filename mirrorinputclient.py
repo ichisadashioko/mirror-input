@@ -20,3 +20,5 @@ print('connected')
 while True:
     msg = socket_connection.recv(1024)
     print(type(msg), msg)
+    messages, remaining_bytes = deserialize_messages(msg)
+    print(messages, len(remaining_bytes), remaining_bytes)
