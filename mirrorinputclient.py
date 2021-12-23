@@ -50,16 +50,34 @@ def execute_input_message(message):
 
 
 parser = argparse.ArgumentParser(description='MirrorInputClient')
-parser.add_argument('--host', type=str, default=DEFAULT_HOST, help='Hostname')
-parser.add_argument('--port', type=int, default=DEFAULT_SERVER_PORT, help='Port')
+parser.add_argument('host', type=str, default=None, help='hostname', nargs='?')
+parser.add_argument('port', type=int, default=DEFAULT_SERVER_PORT, help='port', nargs='?')
 
 args = parser.parse_args()
 print('args', args)
 
+socket_connection = None
+if args.host is None:
+    # auto-detect host
+    for i in range(255):
+        hostname = f'192.168.0.{i}'
+        try:
+            socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print('connecting to', hostname, args.port)
+            socket_connection.connect((args.host, args.port))
+        except:
+            socket_connection = None
+            continue
+else:
+    socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print('connecting to', args.host, args.port)
+    socket_connection.connect((args.host, args.port))
+
+if socket_connection is None:
+    print('Unable to connect to server')
+    exit(1)
+
 # connect to server
-socket_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print('connecting to', args.host, args.port)
-socket_connection.connect((args.host, args.port))
 print('connected')
 
 
@@ -70,9 +88,10 @@ while True:
         print('connection closed')
         break
 
-    print(type(msg), msg)
+    # print(type(msg), msg)
+    print(time.time(), len(msg), end='\r')
     messages, remaining_bytes = deserialize_messages(msg)
-    print(messages, len(remaining_bytes), remaining_bytes)
+    # print(messages, len(remaining_bytes), remaining_bytes)
     for message in messages:
         execute_input_message(message)
     # TODO handle remaining_bytes

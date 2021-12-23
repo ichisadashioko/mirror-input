@@ -31,7 +31,7 @@ keyboard_state_dict = collections.defaultdict(lambda: False)
 def unblock_listen():
     # start a new socket connection to the server to unblock the listen call
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((DEFAULT_HOST, DEFAULT_SERVER_PORT))
+    s.connect(('127.0.0.1', DEFAULT_SERVER_PORT))
     s.close()
 
 
