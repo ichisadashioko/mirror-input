@@ -27,3 +27,4 @@ while True:
     print(type(msg), msg)
     messages, remaining_bytes = deserialize_messages(msg)
     print(messages, len(remaining_bytes), remaining_bytes)
+    # TODO handle remaining_bytes
