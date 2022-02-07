@@ -40,12 +40,21 @@ def on_press(key):
     if STOP_FLAG:
         return False
 
-    if key == pynput.keyboard.Key.esc:
+    # if key == pynput.keyboard.Key.esc:
+    if key == pynput.keyboard.Key.f4:
         # Stop listener
         STOP_FLAG = True
 
         threading.Thread(target=unblock_listen).start()
         return False
+
+    if key == pynput.keyboard.Key.f3:
+        PAUSE_FLAG = not PAUSE_FLAG
+        print(time.time(), 'PAUSE_FLAG:', PAUSE_FLAG)
+        return
+
+    if PAUSE_FLAG:
+        return
 
     key_char = None
 
@@ -56,13 +65,6 @@ def on_press(key):
 
     if key_char is not None:
         key_char = key_char.lower()
-        if key_char == PAUSE_KEY:
-            PAUSE_FLAG = not PAUSE_FLAG
-            print(time.time(), 'PAUSE_FLAG:', PAUSE_FLAG)
-            return
-
-        if PAUSE_FLAG:
-            return
 
         if key_char in ALLOWED_KEYS:
             if keyboard_state_dict[key_char]:
